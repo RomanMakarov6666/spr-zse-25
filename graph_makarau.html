@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Raman Makarau</title>
+  <style>
+    a{
+      text-decoration: none;
+      color: antiquewhite;
+    }
+    a:hover{
+      color: aquamarine;
+    }
+    .submit{
+      background-color:aqua;
+      border-radius: 3px;
+      font-size: medium;
+    }
+    .submit:hover{
+      background-color: rgb(2, 161, 161);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body style="background-color: rgb(0, 0, 63);color: rgb(196, 255, 106); font-size: 1.5cm;">
+
+<canvas id="myChart" style="border:1px solid #000; display:block; margin:auto; background-color:rgb(112,136,157);"></canvas>
+
+<script>
+const canvas = document.getElementById("myChart");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener("resize", () => { resizeCanvas(); draw(); });
+
+let scale = 1;
+let offsetX = 0;
+let offsetY = 0;
+
+const xMin = -100;
+const xMax = 100;
+const yMin = -1000;
+const yMax = 1000;
+
+function toCanvasX(x) {
+  return ((x - xMin) / (xMax - xMin)) * canvas.width;
+}
+function toCanvasY(y) {
+  return canvas.height - ((y - yMin) / (yMax - yMin)) * canvas.height;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  
+  ctx.save();
+  ctx.translate(offsetX, offsetY);
+  ctx.scale(scale, scale);
+
+  const a = Number(localStorage.getItem("a_mak")) || 0;
+  const b = Number(localStorage.getItem("b_mak")) || 0;
+  const c = Number(localStorage.getItem("c_mak")) || 0;
+  const discriminant_mak = b*b - 4*a*c;
+  let x1_mak, x2_mak;
+
+  
+
+  ctx.beginPath();
+  ctx.moveTo(-10000, toCanvasY(0));
+  ctx.lineTo(10000, toCanvasY(0));
+  ctx.moveTo(toCanvasX(0), -10000);
+  ctx.lineTo(toCanvasX(0), 10000);
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 2 / scale;
+  ctx.stroke();
+
+  ctx.beginPath();
+  let first = true;
+  if(a === 0){
+    for(let x=xMin; x<=xMax; x+=0.1){
+      const y = b*x + c;
+      if(first){ ctx.moveTo(toCanvasX(x), toCanvasY(y)); first=false; }
+      else ctx.lineTo(toCanvasX(x), toCanvasY(y));
+    }
+  } else {
+    for(let x=xMin; x<=xMax; x+=0.1){
+      const y = a*x*x + b*x + c;
+      if(first){ ctx.moveTo(toCanvasX(x), toCanvasY(y)); first=false; }
+      else ctx.lineTo(toCanvasX(x), toCanvasY(y));
+    }
+  }
+  ctx.strokeStyle = "navy";
+  ctx.lineWidth = 2 / scale;
+  ctx.stroke();
+
+  if(a !== 0){
+    const x0 = -b/(2*a);
+    const y0 = a*x0*x0 + b*x0 + c;
+
+    ctx.beginPath();
+    ctx.arc(toCanvasX(x0), toCanvasY(y0), 5/scale, 0, 2*Math.PI);
+    ctx.fillStyle = "red";
+    ctx.fill();
+
+    ctx.fillStyle = "white";
+    ctx.font = `${16/scale}px Arial`;
+    ctx.fillText(`(${x0.toFixed(2)}, ${y0.toFixed(2)})`, toCanvasX(x0)+10/scale, toCanvasY(y0)-10/scale);
+
+    if(discriminant_mak >= 0){
+      x1_mak = (-b + Math.sqrt(discriminant_mak)) / (2*a);
+      x2_mak = (-b - Math.sqrt(discriminant_mak)) / (2*a);
+      ctx.beginPath();
+      ctx.arc(toCanvasX(x1_mak), toCanvasY(0), 5/scale, 0, 2*Math.PI);
+      ctx.fillStyle = "orange";
+      ctx.fill();
+
+      ctx.fillStyle = "white";
+      ctx.font = `${16/scale}px Arial`;
+      ctx.fillText(`(${x1_mak.toFixed(2)}, 0)`, toCanvasX(x1_mak)+10/scale, toCanvasY(0)-10/scale);
+
+      ctx.beginPath();
+      ctx.arc(toCanvasX(x2_mak), toCanvasY(0), 5/scale, 0, 2*Math.PI);
+      ctx.fillStyle = "orange";
+      ctx.fill();
+
+      ctx.fillStyle = "white";
+      ctx.font = `${16/scale}px Arial`;
+      ctx.fillText(`(${x2_mak.toFixed(2)}, 0)`, toCanvasX(x2_mak)+10/scale, toCanvasY(0)-10/scale);
+    }
+  }
+  ctx.restore();
+}
+
+draw();
+
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+  const mx = e.offsetX;
+  const my = e.offsetY;
+  const prevScale = scale;
+  scale *= zoomFactor;
+  scale = Math.min(Math.max(scale, 0.1), 100);
+  offsetX -= (mx - offsetX) * (scale / prevScale - 1);
+  offsetY -= (my - offsetY) * (scale / prevScale - 1);
+  draw();
+});
+</script>
+
+</body>
+</html>

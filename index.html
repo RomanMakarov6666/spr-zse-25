@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Raman Makarau</title>
+  <style>
+    a{
+      text-decoration: none;
+      color: antiquewhite;
+    }
+    a:hover{
+      color: aquamarine;
+    }
+    .submit{
+      background-color:aqua;
+      border-radius: 3px;
+      font-size: medium;
+    }
+    .submit:hover{
+      background-color: rgb(2, 161, 161);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body style="background-color: rgb(0, 0, 63);color: rgb(196, 255, 106); font-size: 1.5cm;">
+<div style="float: left;">
+<a href="https://github.com/RomanMakarov6666" target="_blank" id="text" style="float: left;"></a> <br><br><br>
+<form style="clear: both;" onsubmit="updateGraph_mak(this.a_mak.value,this.b_mak.value,this.c_mak.value); return false">
+ a = <input size="6" name="a_mak"> 
+ b = <input size="6" name="b_mak">
+ c = <input size="6" name="c_mak"> 
+ <br><br> 
+ <input class="submit" type="submit" value="Oblicz">
+</form>
+<p id="formula" ></p>
+<p id="pq" ></p>
+<p id="ilo"></p> 
+<p id="zero" ></p>
+<p id="roots"></p>
+<p id="mon"></p>
+<p id="moreless"></p>
+
+</div>
+<a href="graph_makarau.html" style="float: right;"><canvas id="myChart" width="500" height="400" style="border:1px solid #000;float:right; background-color:rgb(112, 136, 157);"></canvas></a>
+
+<script>
+const text_mak="Raman Makarau 2P";
+const element_mak=document.getElementById("text");
+let index_mak=0;
+function typeLetter_mak(){
+  if(index_mak<text_mak.length){
+    element_mak.innerHTML+=text_mak[index_mak];
+    index_mak++;
+    setTimeout(typeLetter_mak,100);
+  }
+}
+typeLetter_mak();
+
+const canvas_mak=document.getElementById('myChart');
+const ctx_mak=canvas_mak.getContext('2d');
+const width_mak=canvas_mak.width;
+const height_mak=canvas_mak.height;
+const xMin_mak=-100;
+const xMax_mak=100;
+
+function drawQuadratic_mak(a_mak,b_mak,c_mak){
+  a_mak=Number(a_mak);
+  b_mak=Number(b_mak);
+  c_mak=Number(c_mak);
+  localStorage.setItem("a_mak", a_mak);
+  localStorage.setItem("b_mak", b_mak);
+  localStorage.setItem("c_mak", c_mak);
+
+  let yMin_mak=a_mak*xMin_mak*xMin_mak+b_mak*xMin_mak+c_mak;
+  let yMax_mak=yMin_mak;
+
+  yMax_mak=1000;
+  yMin_mak=-1000;
+
+  const pad_mak=(yMax_mak-yMin_mak)*0.1;
+  yMin_mak-=pad_mak;
+  yMax_mak+=pad_mak;
+
+  const toCX_mak=x_mak=>((x_mak-xMin_mak)/(xMax_mak-xMin_mak))*width_mak;
+  const toCY_mak=y_mak=>height_mak-((y_mak-yMin_mak)/(yMax_mak-yMin_mak)*height_mak);
+
+  ctx_mak.clearRect(0,0,width_mak,height_mak);
+
+  ctx_mak.beginPath();
+  ctx_mak.moveTo(0,toCY_mak(0));
+  ctx_mak.lineTo(width_mak,toCY_mak(0));
+  ctx_mak.moveTo(toCX_mak(0),0);
+  ctx_mak.lineTo(toCX_mak(0),height_mak);
+  ctx_mak.strokeStyle='black';
+  ctx_mak.lineWidth=2;
+  ctx_mak.stroke();
+
+  ctx_mak.beginPath();
+  let first_mak=true;
+  for(let x_mak=xMin_mak;x_mak<=xMax_mak;x_mak+=0.01){
+    let y_mak=a_mak*x_mak*x_mak+b_mak*x_mak+c_mak;
+    if(first_mak){
+      ctx_mak.moveTo(toCX_mak(x_mak),toCY_mak(y_mak));
+      first_mak=false;
+    }else{
+      ctx_mak.lineTo(toCX_mak(x_mak),toCY_mak(y_mak));
+    }
+  }
+  ctx_mak.strokeStyle='navy';
+  ctx_mak.lineWidth=2;
+  ctx_mak.stroke();
+
+  const p_mak=-b_mak/(2*a_mak);
+  const q_mak=a_mak*p_mak*p_mak+b_mak*p_mak+c_mak;
+
+  ctx_mak.beginPath();
+  ctx_mak.arc(toCX_mak(p_mak),toCY_mak(q_mak),5,0,2*Math.PI);
+  ctx_mak.fillStyle='red';
+  ctx_mak.fill();
+
+  ctx_mak.fillStyle='white';
+  ctx_mak.font='16px Arial';
+  ctx_mak.fillText(`(${p_mak.toFixed(2)}, ${q_mak.toFixed(2)})`,
+    toCX_mak(p_mak)+10, toCY_mak(q_mak)-10);
+
+  document.getElementById("formula").innerHTML=
+    "f(x) = "+a_mak+"x^2 + "+b_mak+"x + "+c_mak;
+
+  document.getElementById("pq").innerHTML=
+    "postac kanoniczna: "+a_mak+"(x - ("+p_mak.toFixed(2)+"))^2 + "+q_mak.toFixed(2);
+
+  document.getElementById("zero").innerHTML=
+    "p = x0 = "+p_mak.toFixed(2)+", q = "+q_mak.toFixed(2);
+
+  const discriminant_mak = b_mak*b_mak - 4*a_mak*c_mak;
+  let x1_mak, x2_mak;
+
+  if(discriminant_mak >= 0){
+    x1_mak = (-b_mak + Math.sqrt(discriminant_mak)) / (2*a_mak);
+    x2_mak = (-b_mak - Math.sqrt(discriminant_mak)) / (2*a_mak);
+
+    document.getElementById("roots").innerHTML =
+      "x1 = " + x1_mak.toFixed(2) + ", x2 = " + x2_mak.toFixed(2);
+
+    if(a_mak>0)
+      document.getElementById("moreless").innerHTML =
+        "f(x)>0: (-oo;"+x1_mak.toFixed(2)+") && ("+x2_mak.toFixed(2)+"; +oo) , "+
+        "f(x)<0: ("+x1_mak.toFixed(2)+"; " + x2_mak.toFixed(2) + ");";
+
+    if(a_mak<0)
+      document.getElementById("moreless").innerHTML =
+        "f(x)<0: (-oo;"+x1_mak.toFixed(2)+") && ("+x2_mak.toFixed(2)+"; +oo) , "+
+        "f(x)>0: ("+x1_mak.toFixed(2)+"; " + x2_mak.toFixed(2) + ");";
+
+    document.getElementById("ilo").innerHTML =
+      "f(x) = "+ a_mak +"(x - ("+x1_mak.toFixed(2)+"))(x - ("+x2_mak.toFixed(2)+"))";
+  } else {
+    document.getElementById("roots").innerHTML = "Nie ma x1 i x2";
+    document.getElementById("ilo").innerHTML = "Nie ma x1 i x2";
+    if(a_mak>0) document.getElementById("moreless").innerHTML = "f(x)>0: (-oo;-oo)";
+    if(a_mak<0) document.getElementById("moreless").innerHTML = "f(x)<0: (-oo;-oo)";
+  }
+
+  if(a_mak>0){
+    document.getElementById("mon").innerHTML =
+      "Malee: (-oo;"+p_mak.toFixed(2)+"), Rosnie: ("+p_mak.toFixed(2)+"; +oo);";
+  }else{
+    document.getElementById("mon").innerHTML =
+      "Rosnie: (-oo;"+p_mak.toFixed(2)+"), Maleje: ("+p_mak.toFixed(2)+";+oo);";
+  }
+}
+
+drawQuadratic_mak(1,0,0);
+
+function updateGraph_mak(a_mak,b_mak,c_mak){
+  drawQuadratic_mak(a_mak,b_mak,c_mak);
+}
+</script>
+
+
+</body>
+</html>
